@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 import random
 from datetime import datetime, timedelta
-import duckdb
 
 # Set seed for reproducibility
 seed = 42
@@ -11,10 +10,24 @@ random.seed(a=seed)
 
 # Configuration
 n_samples = 100_000  # Adjust this number to generate more rows
+noise = False
 
 # Possible values
-components = ['Engine', 'PTO', 'Transmission', 'Hydraulic System']
-fleet_models = ['777G', '785C', 'PC2000', 'L1350']
+if noise:
+    components = ['Engine', 'Eng', 'MOTOR', 'Motor Diese', "Mot. Diesel",
+                            'PTO',
+                            'Transmission', 'Transmição', 'Transmissão',
+                            'Hydraulic System', 'Sistema Hidráulico', 'Sis. Hidráulico', 'Sis. Hid.'] 
+
+    fleet_models = ['777G','77G', 'CAT 777G', 'CATERPILLAR 777', '777',
+                            'PC2000', 'Komatsu - PC2000', 'Kom-2000', '2000',
+                            'L1350', 'Letourneu - L1350', 'Let-L1350', 'L135',
+                            '785C', 'CAT 785c', 'CATERPILLAR 785', '785']
+else:    
+    components = ['Engine', 'PTO', 'Transmission', 'Hydraulic System']
+
+    fleet_models = ['777G', '785C', 'PC2000', 'L1350']
+
 overall_interp_labels = ['Normal', 'Monitor', 'Critical']
 locations = ['PICO', 'VIGA', 'CPX', 'CKS']
 
