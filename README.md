@@ -1,44 +1,61 @@
-# AI Agent Oil 
-> ***Note**: This project is still in development and is not ready for use.*
+# AI Agent Oil Analysis
 
-This project is a proof of concept for a generative AI powered oil analysis dashboard. It is built using Streamlit, DuckDB, and a custom classification model. The project is designed to showcase the potential of generative AI in data cleaning and preprocessing.
+> **Note:** This project is under active development and not ready for production use.
+
+AI Agent Oil Analysis is a proof-of-concept dashboard leveraging generative AI for oil data cleaning, preprocessing, and classification. Built with Streamlit, DuckDB, and a custom classification model, it demonstrates the potential of AI-driven workflows in industrial data analysis.
+
+## Features
+
+- Interactive Streamlit dashboard for data exploration
+- Automated data cleaning and preprocessing using generative AI
+- Custom classification model for oil analysis
+- DuckDB integration for efficient data storage and retrieval
+- Support for user-uploaded CSV/Excel files
 
 ## Project Structure
-The project is structured as follows:
 
-- `app.py`: The main application file that sets up the Streamlit dashboard and handles user interactions.
-- `src/model.py`: Contains the custom classification model and helper functions for data preprocessing.
-- `data/clean_data_generator.py`: Generates a sample dataset for testing and development purposes.
+- `app.py` — Main Streamlit application and dashboard logic
+- `data_sampler.py` — Sample data generator for development/testing
+- `src/model.py` — Custom classification model and preprocessing helpers
+- `src/agent.py` — Implements the generative AI agent responsible for data cleaning, preprocessing, and integration with the classification model
+
+## Setup (Using UV)
+
+1. Clone the repository.
+2. Install dependencies:
+   ```bash
+   uv sync
+   ```
+3. Generate sample data:
+    ```bash
+    uv run data_sapler.py mode=clean 
+    ```
+3. Run the app:
+   ```bash
+   streamlit run app.py
+   ```
 
 ## Workflow Diagrams
-Below are two diagrams illustrating the different stages of the project's workflow. The first diagram shows the normal workflow, where the user interacts with the dashboard and the just fetches the data preprocessed from the database.
 
-```mermaid	
----
-title: Normal Workflow
----
+### Normal Workflow
+
+```mermaid
 flowchart TB
     A[Dashboard] 
     B[Backend]
     C[Classification Model]
     D[Database]
 
-    C --Save Results--> D
-    D --Retrive data--> C
+    C -- Save Results --> D
+    D -- Retrieve data --> C
 
     D -- Retrieve Results --> B
     B -- Display Results --> A
 ```
 
-The second diagram shows the workflow when the user uploads a CSV or Excel file containing the data to be analyzed. The file is then cleaned and processed by the AI Agent, which sends the cleaned data, in the correct format to the database for further analysis.
+### Generative AI Workflow (User Upload)
 
-After the data is processed, the classification model is called to classify the new data. The results are then saved to the database and displayed in the dashboard.
-
-
-```mermaid	
----
-title: Generative AI Workflow
----
+```mermaid
 flowchart TB
     A[Dashboard] 
     B[Backend]
@@ -46,10 +63,13 @@ flowchart TB
     D[Database]
     E[AI Agent]
 
-    A -- Send user provided data --> B
+    A -- Send user data --> B
     B -- Send data to AI Agent --> E
-    E -- Saves processed and cleaned data --> D
-    E -- Calls Classification Model --> C
+    E -- Save cleaned data --> D
+    E -- Call Classification Model --> C
 
-    D --Classify new data--> C
+    D -- Classify new data --> C
 ```
+
+---
+*For questions or insights, please open an issue.*
