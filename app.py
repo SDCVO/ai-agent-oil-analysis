@@ -15,6 +15,8 @@ fiter_date = c2.number_input(label="Months to load", value=1, min_value=1, max_v
 # data_raw = pd.read_csv("data/data.csv")
 data_raw = pd.read_csv("data/data.csv")
 
+if st.session_state.get("cleaned_df") is not None:
+    data_raw = pd.concat([data_raw, st.session_state['cleaned_df']], axis=0, ignore_index=True)
 
 # SIDEBAR
 location_list = data_raw['location'].unique()
@@ -124,36 +126,37 @@ def preview_file(uploaded_file):
     st.html("<span class='big-dialog'></span>")
     st.dataframe(uploaded_file)
 
-@st.dialog(title="🔍 Preview your processed data", width='large')
+@st.dialog(title="🔍 Preview your changes", width='large')
 def wait_for_process():
     st.html("<span class='big-dialog'></span>")
     with st.spinner("Generating cleaning plan..."):
-            try:
-                sample_data = df_uploaded_file
-                if is_mocked:
-                    with open('data/plan_sample.txt', mode='r') as file:
-                        plan_str = file.read()
-                    st.toast('Getting mocked plan!')
-                else:
-                    plan_str = agent.get_cleaning_plan(sample_data, backend=backend, model='qwen2.5:3b')
-                plan = json.loads(plan_str)
-                st.session_state["cleaning_plan"] = plan
-                st.success("Cleaning plan generated!")
-            except Exception as e:
-                st.error(f"Failed to generate plan: {e}")
+        try:
+            columns = ['equipment_type', 'component']
+            cleaning_plan: dict[str, dict[str, str]] = agent.generate_cleaning_plan(df=df_uploaded_file, columns=columns, model='qwen2.5')
+            df_cleaning_plan = agent.generate_df_from_cleaning_plan(cleaning_plan)
+            st.success("Cleaning plan generated!")
+        except Exception as e:
+            st.error(f"Failed to generate plan: {e}")
+        st.session_state['df_mapping_plan'] = st.data_editor(df_cleaning_plan)
 
-    with st.spinner("Cleaning dataset..."):
-            try:
-                cleaned_df = agent.apply_cleaning_plan(df_uploaded_file.copy(), st.session_state["cleaning_plan"])
-                st.session_state["cleaned_df"] = cleaned_df
-                st.success("Cleaning complete!")
-                st.dataframe(st.session_state['cleaned_df'])
-            except Exception as e:
-                st.error(f"Failed to apply cleaning plan: {e}")
+@st.dialog(title="🔍 Clean Dataset", width='large')
+def apply_cleaning_plan():
+    st.html("<span class='big-dialog'></span>")
+    df_cleaned = agent.apply_cleaning_plan(df_uploaded_file.copy(), st.session_state["df_mapping_plan"])
+    st.session_state["cleaned_df"] = df_cleaned
+    st.success("Cleaning complete!")
+    st.dataframe(st.session_state['cleaned_df'])
+    # with st.spinner("Cleaning dataset..."):   
+    #         try:
+    #             cleaned_df = agent.apply_cleaning_plan(df_uploaded_file.copy(), st.session_state["cleaning_plan"])
+    #             st.session_state["cleaned_df"] = cleaned_df
+    #             st.success("Cleaning complete!")
+    #             st.dataframe(st.session_state['cleaned_df'])
+    #         except Exception as e:
+    #             st.error(f"Failed to apply cleaning plan: {e}")
 
 
 if uploaded_file:
-    is_mocked = st.sidebar.toggle('Demonstration', value=False)
     backend = st.sidebar.selectbox("Select backend", ["ollama", "openai"])
 
     try:
@@ -168,9 +171,9 @@ if uploaded_file:
     if st.sidebar.button("🔍 Preview Data"):
         preview_file(df_uploaded_file)
 
-    if st.sidebar.button("✅ Apply Plan to Dataset"):
+    if st.sidebar.button("🔍 Generate Changes"):
         wait_for_process()
-        try:
-            data_raw = pd.concat([data_raw, st.session_state['cleaned_df']])
-        except KeyError:
-            print('Error Concatenating Data')
+
+    if st.session_state.get("df_mapping_plan") is not None:
+        if st.sidebar.button("✔ Apply Changes"):
+            apply_cleaning_plan()

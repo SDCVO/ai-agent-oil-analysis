@@ -204,3 +204,29 @@ def normalize_columns_with_llm(
         # Normalize the DataFrame using the mapping
         df[col] = df[col].replace(mapping)
     return df, mappings
+
+
+def generate_cleaning_plan(df: pd.DataFrame, columns: list[str], model: str = "llama3", base_url: str = "http://localhost:11434") -> dict[str, dict[str, str]]:
+    mappings: dict[str, dict[str, str]] = {}
+    for col in columns:
+        unique_vals: list[str] = df[col].unique().tolist()
+        mapping: dict[str, str] = get_llm_suggestions(values=unique_vals, column_name=col, model=model, base_url=base_url)
+        print(f'Generated suggestions with LLM for column "{col}": {mapping}')
+        mappings[col] = mapping
+    return mappings
+
+def generate_df_from_cleaning_plan(cleaning_plan: dict[str, dict[str, str]]) -> pd.DataFrame:
+    rows = []
+    for label, mapping in cleaning_plan.items():
+        for k, v in mapping.items():
+            rows.append({'label': label, 'original': k, 'renamed': v})
+    return pd.DataFrame(data=rows)
+
+
+def apply_cleaning_plan(df_source: pd.DataFrame, df_mapping: pd.DataFrame) -> pd.DataFrame:
+    for label in df_mapping['label'].unique():
+        mapping_dict = df_mapping.set_index('original')['renamed'].to_dict()
+
+        df_source[label] = df_source[label].map(mapping_dict).fillna(df_source[label])
+
+    return df_source
