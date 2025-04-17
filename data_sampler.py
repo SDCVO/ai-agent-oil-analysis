@@ -2,31 +2,37 @@ import pandas as pd
 import numpy as np
 import random
 from datetime import datetime, timedelta
+import sys
+
+# Parse command-line arguments
+args = dict(arg.split('=', 1) for arg in sys.argv[1:] if '=' in arg)
+mode = args.get('mode', '').lower()
 
 # Set seed for reproducibility
 seed = 42
 np.random.seed(seed=seed)
 random.seed(a=seed)
 
-# Configuration
-n_samples = 100_000  # Adjust this number to generate more rows
-noise = False
+n_samples = 100_000
 
 # Possible values
-if noise:
+if mode == 'clean':
+    file_name = "data/data.csv"
+    components = ['Engine', 'PTO', 'Transmission', 'Hydraulic System']
+    fleet_models = ['777G', '785C', 'PC2000', 'L1350']
+
+elif mode== 'noisy':
+    n_samples = int(n_samples * 0.1)
+    file_name = "data/data_faulty.csv"
     components = ['Engine', 'Eng', 'MOTOR', 'Motor Diese', "Mot. Diesel",
                             'PTO',
                             'Transmission', 'Transmição', 'Transmissão',
                             'Hydraulic System', 'Sistema Hidráulico', 'Sis. Hidráulico', 'Sis. Hid.'] 
-
+    
     fleet_models = ['777G','77G', 'CAT 777G', 'CATERPILLAR 777', '777',
                             'PC2000', 'Komatsu - PC2000', 'Kom-2000', '2000',
                             'L1350', 'Letourneu - L1350', 'Let-L1350', 'L135',
                             '785C', 'CAT 785c', 'CATERPILLAR 785', '785']
-else:    
-    components = ['Engine', 'PTO', 'Transmission', 'Hydraulic System']
-
-    fleet_models = ['777G', '785C', 'PC2000', 'L1350']
 
 overall_interp_labels = ['Normal', 'Monitor', 'Critical']
 locations = ['PICO', 'VIGA', 'CPX', 'CKS']
@@ -71,4 +77,4 @@ for i in range(n_samples):
 df = pd.DataFrame(data)
 
 # Save to CSV if needed
-df.to_csv("data/data.csv", index=False)
+df.to_csv(file_name, index=False)
