@@ -43,7 +43,10 @@ data = data[data['sample_date'] >= cut_date]
 data['anomaly'] = data.apply(lambda row: model.classify_anomaly(row=row), axis=1) 
 
 #TODO: Query database for anomaly list
-anomaly_list = data['anomaly'].iloc[0]
+try:
+    anomaly_list = data['anomaly'].iloc[0]
+except:
+    anomaly_list = []
 plotting_elements_base = ['al', 'cr', 'cu', 'fe', 'ni', 'pb', 'si', 'sn', 'viscosity_at_100c']
 plotting_elements = st.multiselect("Select Plotting Elements", options=plotting_elements_base, default=anomaly_list)
 
@@ -86,22 +89,22 @@ for chunk in divide_into_chunks(plotting_elements_base, 3):
     with ca:
         plot_metric(
             label=chunk[0].capitalize(),
-            value=df_diff[chunk[0]].iloc[0],
-            delta=df_diff[f'{chunk[0]}_diff'].iloc[0],
+            value=df_diff[chunk[0]].iloc[0] if not df_diff.empty and chunk[0] in df_diff.columns else 0,
+            delta=df_diff[f'{chunk[0]}_diff'].iloc[0] if not df_diff.empty and f'{chunk[0]}_diff' in df_diff.columns else 0,
             delta_color='off'
             )
     with cb:
         plot_metric(
-            label=chunk[2].capitalize(),
-            value=df_diff[chunk[1]].iloc[0],
-            delta=df_diff[f'{chunk[1]}_diff'].iloc[0],
+            label=chunk[1].capitalize(),
+            value=df_diff[chunk[1]].iloc[0] if not df_diff.empty and chunk[0] in df_diff.columns else 0,
+            delta=df_diff[f'{chunk[1]}_diff'].iloc[0] if not df_diff.empty and f'{chunk[1]}_diff' in df_diff.columns else 0,
             delta_color='off'
             )
     with cc:
         plot_metric(
             label=chunk[2].capitalize(),
-            value=df_diff[chunk[2]].iloc[0],
-            delta=df_diff[f'{chunk[2]}_diff'].iloc[0],
+            value=df_diff[chunk[2]].iloc[0] if not df_diff.empty and chunk[0] in df_diff.columns else 0,
+            delta=df_diff[f'{chunk[2]}_diff'].iloc[0] if not df_diff.empty and f'{chunk[2]}_diff' in df_diff.columns else 0,
             delta_color='off'
             )
 
